@@ -1,0 +1,88 @@
+/* Base styles for the date picker */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: #c2410c;
+  --rdp-background-color: #fff8f1;
+  --rdp-accent-color-dark: #9a3412;
+  --rdp-background-color-dark: #fef3c7;
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 2px solid var(--rdp-accent-color);
+  margin: 0;
+}
+
+/* Calendar container */
+.rdp-months {
+  background-color: white;
+  border-radius: 0.5rem;
+}
+
+/* Day cells */
+.rdp-day {
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.rdp-day_selected {
+  background-color: var(--rdp-accent-color);
+  color: white;
+}
+
+.rdp-day_selected:hover {
+  background-color: var(--rdp-accent-color-dark);
+  color: white;
+}
+
+.rdp-day:hover:not(.rdp-day_selected) {
+  background-color: var(--rdp-background-color);
+  color: var(--rdp-accent-color);
+}
+
+.rdp-day_today {
+  background-color: var(--rdp-background-color);
+  color: var(--rdp-accent-color);
+  font-weight: bold;
+}
+
+/* Navigation buttons */
+.rdp-nav_button {
+  color: var(--rdp-accent-color);
+}
+
+.rdp-nav_button:hover {
+  background-color: var(--rdp-background-color);
+  color: var(--rdp-accent-color-dark);
+}
+
+/* Month caption */
+.rdp-caption_label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Dark theme overrides */
+.dark-theme .rdp {
+  --rdp-accent-color: #f59e0b;
+  --rdp-background-color: #374151;
+  --rdp-accent-color-dark: #d97706;
+  --rdp-background-color-dark: #4b5563;
+}
+
+.dark-theme .rdp-months {
+  background-color: #1f2937;
+}
+
+.dark-theme .rdp-caption_label {
+  color: #f3f4f6;
+}
+
+.dark-theme .rdp-day {
+  color: #e5e7eb;
+}
+
+.dark-theme .rdp-day_disabled {
+  color: #6b7280;
+}
+
+.dark-theme .rdp-head_cell {
+  color: #9ca3af;
+}

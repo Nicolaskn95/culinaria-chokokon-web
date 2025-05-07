@@ -24,6 +24,14 @@
     --input: 20 5.9% 90%;
     --ring: 15 73% 40%;
     --radius: 0.5rem;
+
+    /* Sidebar variables */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 20 14.3% 4.1%;
+    --sidebar-border: 20 5.9% 90%;
+    --sidebar-accent: 60 4.8% 95.9%;
+    --sidebar-accent-foreground: 24 9.8% 10%;
+    --sidebar-ring: 15 73% 40%;
   }
 
   .dark {
@@ -46,6 +54,14 @@
     --border: 12 6.5% 15.1%;
     --input: 12 6.5% 15.1%;
     --ring: 15 73% 40%;
+
+    /* Sidebar variables */
+    --sidebar: 20 14.3% 4.1%;
+    --sidebar-foreground: 60 9.1% 97.8%;
+    --sidebar-border: 12 6.5% 15.1%;
+    --sidebar-accent: 12 6.5% 15.1%;
+    --sidebar-accent-foreground: 60 9.1% 97.8%;
+    --sidebar-ring: 15 73% 40%;
   }
 }
 
@@ -56,4 +72,73 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom styles for react-datepicker */
+.react-datepicker {
+  font-family: inherit !important;
+  border-radius: 0.5rem !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.react-datepicker__header {
+  background-color: hsl(var(--muted)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.react-datepicker__day--disabled {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.react-datepicker__navigation {
+  top: 8px !important;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day {
+  width: 2rem !important;
+  line-height: 2rem !important;
+  margin: 0.2rem !important;
+}
+
+.react-datepicker__current-month {
+  font-size: 1rem !important;
+  padding: 0.5rem 0 !important;
+}
+
+/* Dark mode styles for calendar */
+.dark .rdp-day {
+  color: #e5e7eb;
+}
+
+.dark .rdp-day_selected {
+  background-color: var(--rdp-accent-color);
+  color: white;
+}
+
+.dark .rdp-day_today {
+  background-color: #374151;
+  color: #f59e0b;
+}
+
+.dark .rdp-caption_label {
+  color: #f3f4f6;
+}
+
+.dark .rdp-head_cell {
+  color: #9ca3af;
+}
+
+.dark .rdp-months {
+  background-color: #1f2937;
 }

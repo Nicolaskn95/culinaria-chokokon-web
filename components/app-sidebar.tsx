@@ -22,14 +22,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
+import { signOut, useSession } from "next-auth/react"
 
 export function AppSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { user, logout } = useAuth()
+  const { data: session } = useSession()
   const { toast } = useToast()
 
   // Determinar a aba ativa com base nos parâmetros de busca
@@ -39,8 +39,8 @@ export function AppSidebar() {
     router.push(`/dashboard?tab=${tab}`)
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
     toast({
       title: "Desconectado",
       description: "Você foi desconectado com sucesso",
@@ -55,7 +55,7 @@ export function AppSidebar() {
           <div className="h-8 w-8 rounded-full bg-amber-700 flex items-center justify-center">
             <span className="text-white text-sm font-bold">C</span>
           </div>
-          <div className="font-bold text-lg">Chokokon</div>
+          <div className="font-bold text-lg dark:text-white">Chokokon</div>
         </div>
       </SidebarHeader>
 
@@ -162,12 +162,12 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="px-3 py-2">
           <div className="flex items-center gap-2 mb-2 px-2 py-1">
-            <User className="h-4 w-4" />
-            <span className="text-sm font-medium">{user}</span>
+            <User className="h-4 w-4 dark:text-gray-300" />
+            <span className="text-sm font-medium dark:text-gray-300">{session?.user?.name || "Usuário"}</span>
           </div>
           <Button
             variant="outline"
-            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />

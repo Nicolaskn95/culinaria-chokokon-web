@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { CalendarIcon, Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,11 +19,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import type { Order, OrderStatus, Product } from "@/lib/types"
+// Import the DatePicker component
+import { DatePicker } from "@/components/ui/date-picker"
 
 interface OrderManagerProps {
   orders: Order[]
@@ -53,7 +53,11 @@ export default function OrderManager({
     totalAmount: 0,
     notes: "",
   })
+  // For the date picker, we'll track the actual Date object
+  const [newOrderDeliveryDate, setNewOrderDeliveryDate] = useState<Date | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
+  // For the editing date picker
+  const [editingOrderDeliveryDate, setEditingOrderDeliveryDate] = useState<Date | null>(null)
   const [newItemProductId, setNewItemProductId] = useState("")
   const [newItemQuantity, setNewItemQuantity] = useState(1)
   const [newItemPrice, setNewItemPrice] = useState(0)
@@ -66,7 +70,7 @@ export default function OrderManager({
   }
 
   const handleAddOrder = () => {
-    if (!newOrder.customerName || !newOrder.customerPhone || !newOrder.deliveryDate || newOrder.items?.length === 0) {
+    if (!newOrder.customerName || !newOrder.customerPhone || !newOrderDeliveryDate || newOrder.items?.length === 0) {
       toast({
         title: "Error",
         description: "Please fill in all required fields and add at least one item",
@@ -82,7 +86,7 @@ export default function OrderManager({
       items: newOrder.items || [],
       status: (newOrder.status as OrderStatus) || "pending",
       orderDate: newOrder.orderDate || format(new Date(), "yyyy-MM-dd"),
-      deliveryDate: newOrder.deliveryDate || "",
+      deliveryDate: format(newOrderDeliveryDate, "yyyy-MM-dd"),
       totalAmount: calculateTotal(newOrder.items || []),
       notes: newOrder.notes,
     }
@@ -98,6 +102,7 @@ export default function OrderManager({
       totalAmount: 0,
       notes: "",
     })
+    setNewOrderDeliveryDate(null)
     setIsAddDialogOpen(false)
 
     toast({
@@ -111,7 +116,7 @@ export default function OrderManager({
       if (
         !editingOrder.customerName ||
         !editingOrder.customerPhone ||
-        !editingOrder.deliveryDate ||
+        !editingOrderDeliveryDate ||
         editingOrder.items.length === 0
       ) {
         toast({
@@ -124,11 +129,13 @@ export default function OrderManager({
 
       const updatedOrder = {
         ...editingOrder,
+        deliveryDate: format(editingOrderDeliveryDate, "yyyy-MM-dd"),
         totalAmount: calculateTotal(editingOrder.items),
       }
 
       onUpdateOrder(updatedOrder)
       setEditingOrder(null)
+      setEditingOrderDeliveryDate(null)
       setIsEditDialogOpen(false)
 
       toast({
@@ -140,6 +147,7 @@ export default function OrderManager({
 
   const startEditing = (order: Order) => {
     setEditingOrder({ ...order })
+    setEditingOrderDeliveryDate(new Date(order.deliveryDate))
     setIsEditDialogOpen(true)
   }
 
@@ -293,32 +301,13 @@ export default function OrderManager({
                   </div>
                   <div className="space-y-2">
                     <Label>Delivery Date*</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          {newOrder.deliveryDate ? (
-                            format(new Date(newOrder.deliveryDate), "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={newOrder.deliveryDate ? new Date(newOrder.deliveryDate) : undefined}
-                          onSelect={(date) =>
-                            setNewOrder({
-                              ...newOrder,
-                              deliveryDate: date ? format(date, "yyyy-MM-dd") : "",
-                            })
-                          }
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <DatePicker
+                      date={newOrderDeliveryDate}
+                      onDateChange={setNewOrderDeliveryDate}
+                      placeholder="Selecione a data de entrega"
+                      minDate={new Date()}
+                      theme="amber"
+                    />
                   </div>
                 </div>
 
@@ -522,31 +511,13 @@ export default function OrderManager({
                   </div>
                   <div className="space-y-2">
                     <Label>Delivery Date*</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          {editingOrder.deliveryDate ? (
-                            format(new Date(editingOrder.deliveryDate), "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={editingOrder.deliveryDate ? new Date(editingOrder.deliveryDate) : undefined}
-                          onSelect={(date) =>
-                            setEditingOrder({
-                              ...editingOrder,
-                              deliveryDate: date ? format(date, "yyyy-MM-dd") : "",
-                            })
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <DatePicker
+                      date={editingOrderDeliveryDate}
+                      onDateChange={setEditingOrderDeliveryDate}
+                      placeholder="Selecione a data de entrega"
+                      minDate={new Date()}
+                      theme="amber"
+                    />
                   </div>
                 </div>
 

@@ -2,9 +2,11 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+// Import the datepicker CSS
+import "./datepicker.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { AuthProvider } from "@/hooks/use-auth"
+import { NextAuthProvider } from "@/components/auth-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,10 +25,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
+          <NextAuthProvider>
             {children}
             <Toaster />
-          </AuthProvider>
+          </NextAuthProvider>
         </ThemeProvider>
       </body>
     </html>

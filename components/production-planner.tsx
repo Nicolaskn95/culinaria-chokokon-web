@@ -1,11 +1,12 @@
 "use client"
 
-import { useMemo } from "react"
-import { ClipboardList, Calendar, ChevronRight } from "lucide-react"
+import { useMemo, useState } from "react"
+import { ClipboardList, Calendar, ChevronRight, User, Phone } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import type { Order, Product } from "@/lib/types"
@@ -16,6 +17,10 @@ interface ProductionPlannerProps {
 }
 
 export default function ProductionPlanner({ orders, products }: ProductionPlannerProps) {
+  // Estado para controlar o diálogo de detalhes dos pedidos
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+
   // Calcular a quantidade de cada produto necessária para pedidos pendentes e em processamento
   const productionNeeds = useMemo(() => {
     // Filtrar apenas pedidos pendentes e em processamento
@@ -58,6 +63,7 @@ export default function ProductionPlanner({ orders, products }: ProductionPlanne
           date,
           products,
           totalOrders: dateOrders.length,
+          orders: dateOrders, // Armazenar os pedidos para esta data
         }
       })
 
@@ -91,6 +97,43 @@ export default function ProductionPlanner({ orders, products }: ProductionPlanne
 
   // Verificar se há pedidos pendentes
   const hasPendingOrders = productionNeeds.length > 0
+
+  // Função para abrir o diálogo com os pedidos da data selecionada
+  const handleViewOrders = (date: string) => {
+    setSelectedDate(date)
+    setIsDialogOpen(true)
+  }
+
+  // Obter os pedidos para a data selecionada
+  const selectedDateOrders = useMemo(() => {
+    if (!selectedDate) return []
+    const dayPlan = productionNeeds.find((plan) => plan.date === selectedDate)
+    return dayPlan ? dayPlan.orders : []
+  }, [selectedDate, productionNeeds])
+
+  // Formatar status do pedido
+  const formatOrderStatus = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Pendente"
+      case "processing":
+        return "Em Processamento"
+      case "completed":
+        return "Concluído"
+      case "cancelled":
+        return "Cancelado"
+      default:
+        return status
+    }
+  }
+
+  // Cores para os status dos pedidos
+  const statusColors: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    processing: "bg-blue-100 text-blue-800 border-blue-200",
+    completed: "bg-green-100 text-green-800 border-green-200",
+    cancelled: "bg-red-100 text-red-800 border-red-200",
+  }
 
   return (
     <Card>
@@ -168,7 +211,12 @@ export default function ProductionPlanner({ orders, products }: ProductionPlanne
                         </TableBody>
                       </Table>
                       <div className="mt-3 flex justify-end">
-                        <Button variant="outline" size="sm" className="text-amber-700">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-amber-700"
+                          onClick={() => handleViewOrders(dayPlan.date)}
+                        >
                           Ver Pedidos <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </div>
@@ -179,6 +227,85 @@ export default function ProductionPlanner({ orders, products }: ProductionPlanne
             </div>
           </>
         )}
+
+        {/* Diálogo para mostrar os detalhes dos pedidos */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Pedidos para{" "}
+                {selectedDate && format(new Date(selectedDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              {selectedDateOrders.map((order) => (
+                <Card key={order.id} className="overflow-hidden">
+                  <div className="bg-gray-50 p-3 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium">Pedido #{order.id}</div>
+                      <Badge className={statusColors[order.status]}>{formatOrderStatus(order.status)}</Badge>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Data do pedido: {format(new Date(order.orderDate), "dd/MM/yyyy")}
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">Cliente:</span> {order.customerName}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">Telefone:</span> {order.customerPhone}
+                        </div>
+                      </div>
+                      {order.notes && (
+                        <div>
+                          <span className="font-medium">Observações:</span>
+                          <p className="text-sm text-gray-600 mt-1">{order.notes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4">
+                      <h4 className="font-medium mb-2">Itens do Pedido</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Produto</TableHead>
+                            <TableHead className="text-center">Quantidade</TableHead>
+                            <TableHead className="text-right">Preço Unit.</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {order.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{getProductName(item.productId)}</TableCell>
+                              <TableCell className="text-center">{item.quantity}</TableCell>
+                              <TableCell className="text-right">R$ {item.unitPrice.toFixed(2)}</TableCell>
+                              <TableCell className="text-right">
+                                R$ {(item.quantity * item.unitPrice).toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-right font-bold">
+                              Total do Pedido:
+                            </TableCell>
+                            <TableCell className="text-right font-bold">R$ {order.totalAmount.toFixed(2)}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   )
